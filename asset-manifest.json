@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/field-capture-app/static/css/main.102ef2e8.css",
+    "main.js": "/field-capture-app/static/js/main.42cb417f.js",
+    "index.html": "/field-capture-app/index.html",
+    "main.102ef2e8.css.map": "/field-capture-app/static/css/main.102ef2e8.css.map",
+    "main.42cb417f.js.map": "/field-capture-app/static/js/main.42cb417f.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.102ef2e8.css",
+    "static/js/main.42cb417f.js"
+  ]
+}
