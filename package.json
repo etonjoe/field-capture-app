@@ -4,6 +4,8 @@
   }
 }
 
+"homepage": "https://etonjoe.github.io/field-capture-app",
+
 "scripts": {
   "start": "react-scripts start",
   "build": "react-scripts build",
