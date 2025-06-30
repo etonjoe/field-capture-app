@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FieldCapture</title>
+  <style>
+    body { font-family: sans-serif; margin: 1em; }
+    video, img { width: 300px; margin-bottom: 1em; }
+    .submission { border: 1px solid #ccc; padding: 1em; margin-top: 1em; }
+    textarea { width: 100%; margin: 0.5em 0; }
+    .emoji { cursor: pointer; margin-right: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>📸 FieldCapture App</h1>
+
+  <video id="preview" autoplay muted></video>
+  <br/>
+  <button onclick="capturePhoto()">📷 Take Photo</button>
+  <button onclick="startRecording()">🎥 Start Recording</button>
+  <button onclick="stopRecording()">🛑 Stop</button>
+  <br/><br/>
+
+  <img id="snapshot" />
+  <video id="playback" controls style="display:none;"></video>
+
+  <div>
+    <textarea id="comment" placeholder="Add a comment..."></textarea>
+    <button onclick="addComment()">➕ Add Comment</button>
+  </div>
+
+  <div id="commentsList"></div>
+
+  <button onclick="submitMedia()">✅ Submit with Location</button>
+
+  <h2>🗺️ Submissions:</h2>
+  <div id="submissions"></div>
+
+  <script>
+    let mediaStream, recorder, chunks = [];
+    let currentComments = [];
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(stream => {
+        mediaStream = stream;
+        document.getElementById("preview").srcObject = stream;
+      });
+
+    function capturePhoto() {
+      const video = document.getElementById("preview");
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext("2d").drawImage(video, 0, 0);
+      document.getElementById("snapshot").src = canvas.toDataURL("image/png");
+    }
+
+    function startRecording() {
+      chunks = [];
+      recorder = new MediaRecorder(mediaStream);
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const video = document.getElementById("playback");
+        video.src = URL.createObjectURL(blob);
+        video.style.display = 'block';
+      };
+      recorder.start();
+    }
+
+    function stopRecording() {
+      recorder.stop();
+    }
+
+    function addComment() {
+      const commentText = document.getElementById("comment").value.trim();
+      if (commentText) {
+        currentComments.push(commentText);
+        const list = document.getElementById("commentsList");
+        const div = document.createElement("div");
+        div.textContent = "💬 " + commentText;
+        list.appendChild(div);
+        document.getElementById("comment").value = "";
+      }
+    }
+
+    function submitMedia() {
+      navigator.geolocation.getCurrentPosition(position => {
+        const lat = position.coords.latitude.toFixed(4);
+        const lon = position.coords.longitude.toFixed(4);
+        const snapshot = document.getElementById("snapshot").src;
+        const video = document.getElementById("playback").src;
+        const submission = document.createElement("div");
+        submission.className = "submission";
+
+        if (snapshot) {
+          const img = new Image();
+          img.src = snapshot;
+          submission.appendChild(img);
+        }
+        if (video) {
+          const vid = document.createElement("video");
+          vid.src = video;
+          vid.controls = true;
+          vid.width = 300;
+          submission.appendChild(vid);
+        }
+
+        const loc = document.createElement("div");
+        loc.textContent = `📍 Lat: ${lat}, Lon: ${lon}`;
+        submission.appendChild(loc);
+
+        const commentsSection = document.createElement("div");
+        currentComments.forEach(text => {
+          const c = document.createElement("div");
+          c.textContent = "💬 " + text;
+          commentsSection.appendChild(c);
+        });
+        submission.appendChild(commentsSection);
+
+        const reactions = document.createElement("div");
+        ["👍", "❤️", "😂", "🔥"].forEach(emoji => {
+          const btn = document.createElement("span");
+          btn.textContent = emoji;
+          btn.className = "emoji";
+          btn.onclick = () => alert(`Reacted with ${emoji}`);
+          reactions.appendChild(btn);
+        });
+        submission.appendChild(reactions);
+
+        document.getElementById("submissions").appendChild(submission);
+        currentComments = [];
+        document.getElementById("commentsList").innerHTML = "";
+      });
+    }
+  </script>
+</body>
+</html>
